@@ -2,10 +2,11 @@
 import re
 from collections import namedtuple
 from enum import Enum
+from datetime import datetime, timedelta, timezone
 import numpy as np
 from unyt import matplotlib_support, define_unit, unyt_array
 
-__all__ = ["ReadCSV"]
+__all__ = ["ReadCSV", "convert_timestamp"]
 
 matplotlib_support()
 define_unit("dBm", (1, "dB"))
@@ -244,6 +245,24 @@ class ReadCSV:
 
     def __repr__(self):
         return "<function toolbag.read_csv(file)>"
+
+
+def convert_timestamp(timestamp):
+    """Convert LabVIEW's timestamp to datetime
+
+    Parameters:
+        timestamp (float): seconds in LabVIEWS's epoch and UTC
+
+    Returns:
+        datetime: in machine's local time zone and time zone naive"""
+    # LabVIEW's timestamp is UTC
+    def _convert(ts):
+        dt = datetime(1904, 1, 1, tzinfo=timezone.utc) + timedelta(seconds=ts)
+        return dt.astimezone().replace(tzinfo=None)
+
+    if isinstance(timestamp, np.ndarray):
+        return np.vectorize(_convert, otypes=[np.datetime64])(timestamp)
+    return _convert(timestamp)
 
 
 if __name__ == "__main__":
