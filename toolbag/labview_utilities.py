@@ -47,6 +47,7 @@ class DataContainer:
         self._item_cache = {}
         self.legends = []
         self._parselabels()
+        self._objstr = str(self.__class__).split(".")[-1].strip("'>")
 
     def _parselabels(self):
         """Parse labels"""
@@ -62,9 +63,8 @@ class DataContainer:
         try:
             return self[name]
         except KeyError:
-            objstr = str(self.__class__).split(".")[-1].strip("'>")
             raise AttributeError(
-                f"'{objstr}' object has no attribute '{name}'"
+                f"'{self._objstr}' object has no attribute '{name}'"
             ) from None
 
     def __getitem__(self, item):
@@ -100,6 +100,20 @@ class DataContainer:
                 step = item.step if item.step is not None else 1
                 return [self[i] for i in range(start, stop, step)]
             raise KeyError(f"{item}") from None
+
+    def __len__(self):
+        return len(self._data)
+
+    def __setitem__(self, item, value):
+        raise TypeError(f"'{self._objstr}' does not support item assignment")
+
+    def __delitem__(self, item):
+        raise TypeError(f"'{self._objstr}' does not support item deletion")
+
+    def __contains__(self, item):
+        labels = [axis.label for axis in self._labels]
+        names = [axis.name for axis in self._labels]
+        return item in labels + names
 
     def __dir__(self):
         attrs = list(filter(lambda s: not s.startswith("_"), super().__dir__()))
@@ -263,9 +277,3 @@ def convert_timestamp(timestamp):
     if isinstance(timestamp, np.ndarray):
         return np.vectorize(_convert, otypes=[np.datetime64])(timestamp)
     return _convert(timestamp)
-
-
-if __name__ == "__main__":
-    read_csv = ReadCSV()
-    mydata = read_csv("./toolbag/tests/single column with header.csv")
-    print(mydata)
