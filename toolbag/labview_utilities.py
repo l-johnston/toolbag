@@ -16,12 +16,16 @@ class Error(Exception):
     """General exception class for this module."""
 
 
+# regex pattern for mantissa of numeric value
 P1 = r"[+-]?[0-9]+\.?[0-9]*|NaN|Inf|-Inf"
+# pattern for exponent in scientific notation
 P2 = "[eE][+-][0-9]+"
+# pattern for exponent in SI notation
 # LabVIEW SI prefixes only multiples of 10**3 and u means µ
 SI_PREFIXES = "yzafpnum kMGTPEZY"
 P3 = f"[{SI_PREFIXES}]"
 NUMBER = re.compile(f"^(?P<mantissa>{P1})(?P<exponent>{P2}|{P3})?$")
+
 DATALABEL = re.compile(
     r"^(?P<name>[\w]+)( )?(?P<unit>\(.+\))?( - )?(?P<legend>[\w ]+)?$"
 )
@@ -38,7 +42,23 @@ class ArrayOrientation(Enum):
 
 
 class DataContainer:
-    """DataContainer"""
+    """DataContainer holds the parsed content of the CSV file.
+
+    DataContainer is a hybrid container with attribute, mapping and sequence access
+    to the underlying CSV content.
+
+    Parameters
+    ----------
+        data: ndarray
+        header: string
+        labels: list of DataLabel
+
+    Attributes
+    ----------
+        header: string
+        legends: list of strings
+        <name>: unyt_array
+    """
 
     def __init__(self, data, header, labels):
         self._data = data

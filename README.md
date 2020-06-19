@@ -15,7 +15,7 @@ Excel'. In the following example, we have the array [1e-12, 2e-6, 3e3] s in a CS
 
     >>> from toolbag import read_csv
     >>> from io import StringIO
-    >>> file = String("My data\nTime (s),1p,2u,3k")
+    >>> file = StringIO("My data\nTime (s),1p,2u,3k")
     >>> data = read_csv(file)
     >>> file.close()
     >>> data.header
