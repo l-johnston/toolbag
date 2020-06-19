@@ -36,4 +36,5 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Intended Audience :: Science/Research",
     ],
+    install_requires=["numpy", "unyt"],
 )

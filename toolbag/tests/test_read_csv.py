@@ -1,4 +1,5 @@
 """Test read_csv"""
+from io import StringIO
 import numpy as np
 from unyt import unyt_array
 from unyt.testing import allclose_units
@@ -123,3 +124,11 @@ def test_singlerow_timestamps():
         [np.datetime64(f"2020-01-01T00:00:0{v}.000000") for v in range(3)]
     )
     assert np.all(ts == expected_array)
+
+
+def test_file():
+    file = StringIO("My data\nTime (s),1p,2u,3k")
+    data = read_csv(file)
+    file.close()
+    assert data.header == "My data"
+    assert allclose_units(data.Time, unyt_array([1e-12, 2e-6, 3e3], "s"))

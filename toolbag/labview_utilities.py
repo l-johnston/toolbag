@@ -148,7 +148,7 @@ class ReadCSV:
 
     Parameters
     ----------
-        file: string file name
+        file: file, string file name or pathlib.Path
 
     Attributes
     ----------
@@ -264,9 +264,13 @@ class ReadCSV:
 
     def __call__(self, file):
         self._initialize_attributes()
-        with open(file, "rt", encoding="utf-8-sig") as f:
-            for line in f.readlines():
+        try:
+            for line in file.readlines():
                 self._rawcsv.append(line.strip().split(","))
+        except AttributeError:
+            with open(file, "rt", encoding="utf-8-sig") as f:
+                for line in f.readlines():
+                    self._rawcsv.append(line.strip().split(","))
         self._findarray()
         self._parseheader()
         if self._orientation == ArrayOrientation.UNKNOWN:
