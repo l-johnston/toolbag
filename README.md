@@ -22,3 +22,18 @@ Excel'. In the following example, we have the array [1e-12, 2e-6, 3e3] s in a CS
     'My data'
     >>> data.Time
     unyt_array([1.e-12, 2.e-06, 3.e+03], 's')
+
+### Reading from LTSpice text data files
+It is possible to read the trace data text files from LTSpice 'File -> Export data as text'.
+
+    >>> from toolbag import read_ltxt
+    >>> from io import StringIO
+    >>> file = StringIO("time\tV(out)\n0.0e+0\t1.0e+0\n1.0e+0\t2.0e+0")
+    >>> data = read_ltxt(file)
+    >>> file.close()
+    >>> print(data.header)
+    time    V(out)
+    >>> data.time
+    unyt_array([0., 1.], 's')
+    >>> data.V_out
+    unyt_array([1., 2.], 'V')

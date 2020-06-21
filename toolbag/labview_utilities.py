@@ -1,10 +1,9 @@
 """LabVIEW utilities."""
 import re
-from collections import namedtuple
-from enum import Enum
 from datetime import datetime, timedelta, timezone
 import numpy as np
 from unyt import matplotlib_support, define_unit, unyt_array
+from toolbag.common import singleton, ArrayOrientation, DataLabel, DCBase
 
 __all__ = ["ReadCSV", "convert_timestamp"]
 
@@ -24,131 +23,17 @@ P2 = "[eE][+-][0-9]+"
 # LabVIEW SI prefixes only multiples of 10**3 and u means µ
 SI_PREFIXES = "yzafpnum kMGTPEZY"
 P3 = f"[{SI_PREFIXES}]"
-NUMBER = re.compile(f"^(?P<mantissa>{P1})(?P<exponent>{P2}|{P3})?$")
+NUMBER = f"^(?P<mantissa>{P1})(?P<exponent>{P2}|{P3})?$"
 
-DATALABEL = re.compile(
-    r"^(?P<name>[\w]+)( )?(?P<unit>\(.+\))?( - )?(?P<legend>[\w ]+)?$"
-)
-VALIDIDENTIFIER = re.compile("^[a-zA-Z][a-zA-Z0-9_]*$")
-DataLabel = namedtuple("DataLabel", ["label", "name", "unit", "legend"])
+DATALABEL = r"^(?P<name>[\w]+)( )?(?P<unit>\(.+\))?( - )?(?P<legend>[\w ]+)?$"
+VALIDIDENTIFIER = "^[a-zA-Z][a-zA-Z0-9_]*$"
 
 
-class ArrayOrientation(Enum):
-    """Array orientation enum"""
-
-    ROW = 0
-    COLUMN = 1
-    UNKNOWN = 2
-
-
-class DataContainer:
-    """DataContainer holds the parsed content of the CSV file.
-
-    DataContainer is a hybrid container with attribute, mapping and sequence access
-    to the underlying CSV content.
-
-    Parameters
-    ----------
-        data: ndarray
-        header: string
-        labels: list of DataLabel
-
-    Attributes
-    ----------
-        header: string
-        legends: list of strings
-        <name>: unyt_array
-    """
-
-    def __init__(self, data, header, labels):
-        self._data = data
-        self.header = header
-        self._labels = labels
-        self._valid_identifiers = []
-        self._item_cache = {}
-        self.legends = []
-        self._parselabels()
-        self._objstr = str(self.__class__).split(".")[-1].strip("'>")
-
-    def _parselabels(self):
-        """Parse labels"""
-        names = [axis.name for axis in self._labels]
-        for axis in self._labels:
-            unique = names.count(axis.name) == 1
-            valid = re.match(VALIDIDENTIFIER, axis.name) is not None
-            if unique and valid:
-                self._valid_identifiers.append(axis.name)
-            self.legends.append(axis.legend)
-
-    def __getattr__(self, name):
-        try:
-            return self[name]
-        except KeyError:
-            raise AttributeError(
-                f"'{self._objstr}' object has no attribute '{name}'"
-            ) from None
-
-    def __getitem__(self, item):
-        try:
-            return self._item_cache[item]
-        except KeyError:
-            labels = [axis.label for axis in self._labels]
-            names = [axis.name for axis in self._labels]
-            units = [axis.unit for axis in self._labels]
-            if isinstance(item, int):
-                self._item_cache[item] = unyt_array(
-                    self._data[item], units[item], name=names[item]
-                )
-            elif isinstance(item, str):
-                try:
-                    i = names.index(item)
-                except ValueError:
-                    try:
-                        i = labels.index(item)
-                    except ValueError:
-                        raise KeyError(f"{item}") from None
-                self._item_cache[item] = unyt_array(
-                    self._data[i], units[i], name=names[i]
-                )
-            else:
-                raise KeyError(f"{item}") from None
-            return self._item_cache[item]
-        except TypeError:
-            if isinstance(item, slice):
-                rows = self._data.shape[0]
-                start = item.start if item.start is not None else 0
-                stop = item.stop if item.stop is not None else rows
-                step = item.step if item.step is not None else 1
-                return [self[i] for i in range(start, stop, step)]
-            raise KeyError(f"{item}") from None
-
-    def __len__(self):
-        return len(self._data)
-
-    def __setitem__(self, item, value):
-        raise TypeError(f"'{self._objstr}' does not support item assignment")
-
-    def __delitem__(self, item):
-        raise TypeError(f"'{self._objstr}' does not support item deletion")
-
-    def __contains__(self, item):
-        labels = [axis.label for axis in self._labels]
-        names = [axis.name for axis in self._labels]
-        return item in labels + names
-
-    def __dir__(self):
-        attrs = list(filter(lambda s: not s.startswith("_"), super().__dir__()))
-        return sorted(attrs + self._valid_identifiers)
-
-    def __repr__(self):
-        return repr(self._data)
-
-
+@singleton
 class ReadCSV:
     """Read text files containing comma-separted values (CSV).
 
-    ReadCSV is a singleton class instantiated as `read_csv` at the package level and
-    is callable. This reader supports a number of scenarios from a single array with
+    This reader supports a number of scenarios from a single array with
     no header or data label to 2D arrays with multi-line header and data labels. It will
     automatically determine the orientation of a 2D array if data labels are present.
 
@@ -182,8 +67,6 @@ class ReadCSV:
         present.
     """
 
-    _instantiated = False
-
     def _initialize_attributes(self):
         """Initialize attributes for subsequent calls."""
         self._rawcsv = []
@@ -195,17 +78,13 @@ class ReadCSV:
         self.data = []
 
     def __init__(self):
-        if not ReadCSV._instantiated:
-            self._rawcsv = []
-            self._array_row_start = 0
-            self._array_column_start = 0
-            self._orientation = ArrayOrientation.UNKNOWN
-            self.header = []
-            self.labels = []
-            self.data = []
-            ReadCSV._instantiated = True
-        else:
-            raise Error("ReadCSV is a singleton class")
+        self._rawcsv = []
+        self._array_row_start = 0
+        self._array_column_start = 0
+        self._orientation = ArrayOrientation.UNKNOWN
+        self.header = []
+        self.labels = []
+        self.data = []
 
     @staticmethod
     def _parsenumber(mantissa, exponent):
@@ -245,7 +124,7 @@ class ReadCSV:
                 match = re.match(NUMBER, column)
                 if match is None:
                     raise Error(f"Non numeric value '{column}' found in data array")
-                row.append(ReadCSV._parsenumber(*match.groups()))
+                row.append(self._parsenumber(*match.groups()))
             self.data.append(row)
         self.data = np.asarray(self.data)
 
@@ -300,13 +179,77 @@ class ReadCSV:
             return self.data
         if self._orientation == ArrayOrientation.COLUMN:
             self.data = self.data.T
-        return DataContainer(self.data, self.header, self.labels)
+        return DataContainer(self.data, self.labels, header=self.header)
 
     def __dir__(self):
         return list(filter(lambda s: not s.startswith("_"), super().__dir__()))
 
     def __repr__(self):
         return "<function toolbag.read_csv(file)>"
+
+
+class DataContainer(DCBase):
+    """DataContainer holds the parsed content of the CSV file.
+
+    DataContainer is a hybrid container with attribute, mapping and sequence access
+    to the underlying CSV content.
+
+    Parameters
+    ----------
+        data: ndarray
+        header: string
+        labels: list of DataLabel
+
+    Attributes
+    ----------
+        header: string
+        legends: list of strings
+        <name>: unyt_array
+    """
+
+    def _parselabels(self):
+        """Parse labels"""
+        names = [axis.name for axis in self._labels]
+        for axis in self._labels:
+            unique = names.count(axis.name) == 1
+            valid = re.match(VALIDIDENTIFIER, axis.name) is not None
+            if unique and valid:
+                self._valid_identifiers.append(axis.name)
+            self.legends.append(axis.legend)
+
+    def __getitem__(self, item):
+        try:
+            return self._item_cache[item]
+        except KeyError:
+            labels = [axis.label for axis in self._labels]
+            names = [axis.name for axis in self._labels]
+            units = [axis.unit for axis in self._labels]
+            if isinstance(item, int):
+                self._item_cache[item] = unyt_array(
+                    self._data[item], units[item], name=names[item]
+                )
+            elif isinstance(item, str):
+                try:
+                    i = names.index(item)
+                except ValueError:
+                    try:
+                        i = labels.index(item)
+                    except ValueError:
+                        raise KeyError(f"{item}") from None
+                self._item_cache[item] = unyt_array(
+                    self._data[i], units[i], name=names[i]
+                )
+            else:
+                raise KeyError(f"{item}") from None
+            return self._item_cache[item]
+        except TypeError:
+            if isinstance(item, slice):
+                rows = self._data.shape[0]
+                start = item.start if item.start is not None else 0
+                stop = item.stop if item.stop is not None else rows
+                step = item.step if item.step is not None else 1
+                return [self[i] for i in range(start, stop, step)]
+            raise KeyError(f"{item}") from None
 
 
 def convert_timestamp(timestamp):
