@@ -3,16 +3,12 @@ import re
 from datetime import datetime, timedelta, timezone
 import numpy as np
 from unyt import matplotlib_support, define_unit, unyt_array
-from toolbag.common import singleton, ArrayOrientation, DataLabel, DCBase
+from toolbag.common import Error, singleton, ArrayOrientation, DataLabel, DCBase
 
 __all__ = ["ReadCSV", "convert_timestamp"]
 
 matplotlib_support()
 define_unit("dBm", (1, "dB"))
-
-
-class Error(Exception):
-    """General exception class for this module."""
 
 
 # regex pattern for mantissa of numeric value

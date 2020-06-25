@@ -4,6 +4,10 @@ from collections import namedtuple
 from enum import Enum
 
 
+class Error(Exception):
+    """General exception class for this module."""
+
+
 def singleton(cls):
     """Decorator function to make class 'cls' a singleton"""
 
