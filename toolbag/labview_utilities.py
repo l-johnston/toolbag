@@ -21,7 +21,7 @@ SI_PREFIXES = "yzafpnum kMGTPEZY"
 P3 = f"[{SI_PREFIXES}]"
 NUMBER = f"^(?P<mantissa>{P1})(?P<exponent>{P2}|{P3})?$"
 
-DATALABEL = r"^(?P<name>[\w]+)( )?(?P<unit>\(.+\))?( - )?(?P<legend>[\w ]+)?$"
+DATALABEL = r"^(?P<name>[\w]+)(\s+)?(?P<unit>\(.+\))?( - )?(?P<legend>[\w ]+)?$"
 VALIDIDENTIFIER = "^[a-zA-Z][a-zA-Z0-9_]*$"
 
 

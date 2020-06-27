@@ -3,3 +3,4 @@ __pycache__/
 .vscode/
 toolbag.egg-info/
 *.vi
+MGC docs/

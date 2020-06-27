@@ -1,7 +1,7 @@
 """Test read_csv"""
 from io import StringIO
 import numpy as np
-from unyt import unyt_array
+from unyt import unyt_array, unyt_quantity
 from unyt.testing import allclose_units
 from toolbag import read_csv
 from toolbag.labview_utilities import DataContainer
@@ -132,3 +132,8 @@ def test_file():
     file.close()
     assert data.header == "My data"
     assert allclose_units(data.Time, unyt_array([1e-12, 2e-6, 3e3], "s"))
+
+
+def test_extraspaceinname():
+    data = read_csv("./toolbag/tests/extra space in name.csv")
+    assert allclose_units(data.I_bat[0], unyt_quantity(10e-6, "A"))
