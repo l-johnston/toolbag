@@ -1,5 +1,8 @@
 """LTSpice utilities"""
 import re
+import pathlib
+import struct
+import dateutil
 import numpy as np
 from unyt import matplotlib_support, Unit, unyt_array
 from unyt.exceptions import UnitParseError
@@ -199,3 +202,136 @@ class DataContainer(DCBase):
                 step = item.step if item.step is not None else 1
                 return [self[i] for i in range(start, stop, step)]
             raise KeyError(f"{item}") from None
+
+
+@singleton
+class ReadLTraw:
+    """Read LTSpice raw files"""
+
+    def __init__(self):
+        self._raw = b""
+        self._info = {}
+        self._data = np.asarray([])
+        self._labels = []
+
+    def _initialize_attributes(self):
+        self._raw = b""
+        self._info = {}
+        self._data = np.asarray([])
+        self._labels = []
+
+    def _parseheader(self):
+        encoding = "utf-16-le"
+        last_line = "Binary:\n".encode(encoding)
+        binary_start = self._raw.index(last_line) + len(last_line)
+        self._info["binary_start"] = binary_start
+        header = self._raw[:binary_start].decode(encoding)
+        self._info["header"] = header
+        # assume the order remains constant in time
+        lines = header.split("\n")
+        lines.reverse()
+        _, v = lines.pop().split("*")
+        self._info["title"] = pathlib.PurePath(v.strip())
+        _, v = lines.pop().split(":", maxsplit=1)
+        self._info["date"] = dateutil.parser.parse(v.strip())
+        _, v = lines.pop().split(":")
+        self._info["plotname"] = v.strip()
+        _, v = lines.pop().split(":")
+        self._info["flags"] = v.strip().split(" ")
+        _, v = lines.pop().split(":")
+        self._info["n_variables"] = int(v)
+        _, v = lines.pop().split(":")
+        self._info["n_points"] = int(v)
+        _, v = lines.pop().split(":")
+        self._info["offset"] = float(v)
+        _, v = lines.pop().split(":")
+        self._info["command"] = v
+        lines.pop()
+        variables = []
+        for line in lines[-1:1:-1]:
+            _, v, t = line.strip().split("\t")
+            variables.append((v, t))
+        self._info["variables"] = variables
+
+    def _makearray(self):
+        data = []
+        m, var_fmt = (2, "d") if "complex" in self._info["flags"] else (1, "f")
+        n = self._info["n_variables"]
+        buffer = self._raw[self._info["binary_start"] :]
+        # pylint: disable=no-member
+        for values in struct.iter_unpack("<" + m * "d" + m * (n - 1) * var_fmt, buffer):
+            # fix LTSpice double sign mistake
+            values = list(values)
+            values[0] = abs(values[0])
+            if m == 2:
+                values = [complex(r, i) for r, i in zip(values[0::2], values[1::2])]
+            data.append(values)
+        self._data = np.asarray(data).T
+
+    @staticmethod
+    def _makename(variable):
+        return "$" + variable.replace("(", r"_{\rm ").replace(")", "}$")
+
+    def _makelabels(self):
+        for v, t in self._info["variables"]:
+            if "time" in t:
+                unit = "s"
+                name = "$t$"
+            elif "voltage" in t:
+                unit = "V"
+                name = self._makename(v)
+            elif "current" in t:
+                unit = "A"
+                name = self._makename(v)
+            elif "frequency" in t:
+                unit = "Hz"
+                name = "$f$"
+            else:
+                unit = ""
+                name = self._makename(v)
+            self._labels.append(DataLabel(v, name, unit, v))
+
+    def __call__(self, file):
+        self._initialize_attributes()
+        try:
+            self._raw = file.read()
+        except AttributeError:
+            with open(file, "rb") as f:
+                self._raw = f.read()
+        self._parseheader()
+        self._makearray()
+        self._makelabels()
+        return DataContainerRaw(self._data, self._labels, header=self._info)
+
+    def __dir__(self):
+        return list(filter(lambda s: not s.startswith("_"), super().__dir__()))
+
+    def __repr__(self):
+        return "<function toolbag.read_ltraw(file)>"
+
+
+class DataContainerRaw(DCBase):
+    """DataContainer for LTSpice raw file"""
+
+    def _parselabels(self):
+        self._valid_identifiers = [axis.label for axis in self._labels]
+
+    @property
+    def variables(self):
+        """Return list of variables in the raw file"""
+        return [axis.label for axis in self._labels]
+
+    def __getitem__(self, item):
+        try:
+            return self._item_cache[item]
+        except KeyError:
+            try:
+                i = [axis.label for axis in self._labels].index(item)
+            except ValueError:
+                raise KeyError(f"{item}") from None
+            axis = self._labels[i]
+            data = (
+                self._data[i].real if item in ["time", "frequency"] else self._data[i]
+            )
+            self._item_cache[item] = unyt_array(data, axis.unit, name=axis.name)
+        return self._item_cache[item]
