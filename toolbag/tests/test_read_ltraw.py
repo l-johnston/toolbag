@@ -28,3 +28,8 @@ def test_vsourceac():
     assert allclose_units(sim.frequency, unyt_array([1, 2, 3], "Hz"))
     assert allclose_units(sim["V(v1)"], unyt_array(3 * [complex(1, 0)], "V"))
     assert allclose_units(sim["I(C1)"].imag, unyt_array([1, 2, 3], "A"))
+
+
+def test_sim():
+    sim = read_ltraw("../../NI Projects/PXIe-5654/v&v/amplitude control - rev E.raw")
+    print(sim.variables)

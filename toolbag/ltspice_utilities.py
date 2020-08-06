@@ -227,31 +227,46 @@ class ReadLTraw:
         self._info["binary_start"] = binary_start
         header = self._raw[:binary_start].decode(encoding)
         self._info["header"] = header
-        # assume the order remains constant in time
+        # assume keys remain constant in time
         lines = header.split("\n")
-        lines.reverse()
-        _, v = lines.pop().split("*")
-        self._info["title"] = pathlib.PurePath(v.strip())
-        _, v = lines.pop().split(":", maxsplit=1)
-        self._info["date"] = dateutil.parser.parse(v.strip())
-        _, v = lines.pop().split(":")
-        self._info["plotname"] = v.strip()
-        _, v = lines.pop().split(":")
-        self._info["flags"] = v.strip().split(" ")
-        _, v = lines.pop().split(":")
-        self._info["n_variables"] = int(v)
-        _, v = lines.pop().split(":")
-        self._info["n_points"] = int(v)
-        _, v = lines.pop().split(":")
-        self._info["offset"] = float(v)
-        _, v = lines.pop().split(":")
-        self._info["command"] = v
-        lines.pop()
-        variables = []
-        for line in lines[-1:1:-1]:
-            _, v, t = line.strip().split("\t")
-            variables.append((v, t))
-        self._info["variables"] = variables
+        for i, line in enumerate(lines):
+            if line.startswith("Title:"):
+                _, v = line.split("*")
+                self._info["title"] = pathlib.PurePath(v.strip())
+            elif line.startswith("Date:"):
+                _, v = line.split(":", maxsplit=1)
+                self._info["date"] = dateutil.parser.parse(v.strip())
+            elif line.startswith("Plotname:"):
+                _, v = line.split(":")
+                self._info["plotname"] = v.strip()
+            elif line.startswith("Flags:"):
+                _, v = line.split(":")
+                self._info["flags"] = v.strip().split(" ")
+            elif line.startswith("No. Variables:"):
+                _, v = line.split(":")
+                self._info["n_variables"] = int(v)
+            elif line.startswith("No. Points:"):
+                _, v = line.split(":")
+                self._info["n_points"] = int(v)
+            elif line.startswith("Offset:"):
+                _, v = line.split(":")
+                self._info["offset"] = float(v)
+            elif line.startswith("Command:"):
+                _, v = line.split(":")
+                self._info["command"] = v
+            elif line.startswith("Backannotation:"):
+                pass
+            elif line.startswith("Variables:"):
+                n = self._info["n_variables"]
+                variables = []
+                for var_line in lines[i + 1 : i + 1 + n]:
+                    _, v, t = var_line.strip().split("\t")
+                    variables.append((v, t))
+                self._info["variables"] = variables
+                break
+            else:
+                k = line.split(":")[0]
+                raise ValueError(f"Unexpected header key '{k}'")
 
     def _makearray(self):
         data = []

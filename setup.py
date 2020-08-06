@@ -36,5 +36,5 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Intended Audience :: Science/Research",
     ],
-    install_requires=["numpy", "unyt"],
+    install_requires=["numpy", "matplotlib", "unyt"],
 )

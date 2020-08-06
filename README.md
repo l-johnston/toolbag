@@ -38,6 +38,12 @@ It is possible to read the trace data text files from LTSpice 'File -> Export da
     >>> data.V_out
     unyt_array([1., 2.], 'V')
 
+### Reading from LTSpice raw files
+
+    >>> from toolbag import read_ltraw
+    >>> sim = read_ltraw(<.raw>)
+    >>> sim.variables
+
 ### Resetting matplotlib figure after calling show() or close()
 In IPython or similar interactive session, calling show() is blocking by default
 and after closing the window, pyplot creates a new figure instance assuming that
