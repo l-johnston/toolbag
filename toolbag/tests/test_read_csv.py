@@ -137,3 +137,8 @@ def test_file():
 def test_extraspaceinname():
     data = read_csv("./toolbag/tests/extra space in name.csv")
     assert allclose_units(data.I_bat[0], unyt_quantity(10e-6, "A"))
+
+
+def test_unequal_lengths():
+    data = read_csv("./toolbag/tests/unequal lengths.csv")
+    assert np.isnan(data[2, 2])

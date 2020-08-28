@@ -4,3 +4,5 @@ __pycache__/
 toolbag.egg-info/
 *.vi
 MGC docs/
+build/
+dist/

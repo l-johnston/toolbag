@@ -108,15 +108,20 @@ class ReadCSV:
         #    are optional.
         # 6. If data labels are present, read_csv returns DataContainer.
         self._array_row_start = 0
+        found_row_start = False
         self._array_column_start = 0
         for line in self._rawcsv:
-            if re.match(NUMBER, line[-1]) is None:
-                self._array_row_start += 1
-                continue
+            if not found_row_start:
+                if re.match(NUMBER, line[-1]) is None:
+                    self._array_row_start += 1
+                    continue
+                found_row_start = True
             if re.match(NUMBER, line[0]) is None:
                 self._array_column_start = 1
             row = []
             for column in line[self._array_column_start :]:
+                if column == "":
+                    column = "NaN"
                 match = re.match(NUMBER, column)
                 if match is None:
                     raise Error(f"Non numeric value '{column}' found in data array")
