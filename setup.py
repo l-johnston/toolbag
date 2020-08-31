@@ -37,4 +37,5 @@ setup(
         "Intended Audience :: Science/Research",
     ],
     install_requires=["numpy", "matplotlib", "unyt"],
+    entry_points={"console_scripts": ["pip_upgrade_all=toolbag.pip_upgrade_all:main"]},
 )
