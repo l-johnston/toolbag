@@ -8,7 +8,10 @@ from toolbag.common import Error, singleton, ArrayOrientation, DataLabel, DCBase
 __all__ = ["ReadCSV", "convert_timestamp"]
 
 matplotlib_support()
-define_unit("dBm", (1, "dB"))
+try:
+    define_unit("dBm", (1, "dB"))
+except RuntimeError:
+    pass
 
 
 # regex pattern for mantissa of numeric value
