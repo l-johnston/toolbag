@@ -2,16 +2,10 @@
 import re
 from datetime import datetime, timedelta, timezone
 import numpy as np
-from unyt import matplotlib_support, define_unit, unyt_array
+from unyt import unyt_array
 from toolbag.common import Error, singleton, ArrayOrientation, DataLabel, DCBase
 
 __all__ = ["ReadCSV", "convert_timestamp"]
-
-matplotlib_support()
-try:
-    define_unit("dBm", (1, "dB"))
-except RuntimeError:
-    pass
 
 
 # regex pattern for mantissa of numeric value
@@ -255,6 +249,11 @@ class DataContainer(DCBase):
                 return [self[i] for i in range(start, stop, step)]
             raise KeyError(f"{item}") from None
 
+    @property
+    def columns(self):
+        """Return list of column labels"""
+        return [dl.label for dl in self._labels]
+
 
 def convert_timestamp(timestamp):
     """Convert LabVIEW's timestamp to datetime.
@@ -277,3 +276,27 @@ def convert_timestamp(timestamp):
     if isinstance(timestamp, np.ndarray):
         return np.vectorize(_convert, otypes=[np.datetime64])(timestamp)
     return _convert(timestamp)
+
+
+def write_csv(file, data, header=None):
+    """Write data to text file in CSV format
+
+    Parameters
+    ----------
+    file : str or Path-like
+    data : array-like
+    header : str
+    """
+    try:
+        file = open(file, "wt")
+    except TypeError:
+        pass
+    if header is not None:
+        file.write(header + "\n")
+    for row in data:
+        if isinstance(row, np.ndarray):
+            row = ",".join(row.astype(str))
+        else:
+            row = ",".join(row)
+        file.write(row + "\n")
+    file.close()
