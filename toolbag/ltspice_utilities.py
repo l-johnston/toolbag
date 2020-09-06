@@ -161,7 +161,12 @@ class DataContainer(DCBase):
         names = [axis.name for axis in self._labels]
         self.header = "\t".join(labels)
         self.legends = labels
-        self._valid_identifiers = list(filter(lambda n: n is not None, names))
+        for name in filter(lambda n: n is not None, names):
+            valid = re.match(VALIDIDENTIFIER, name) is not None
+            if valid:
+                self._valid_identifiers.append(name)
+            else:
+                self._valid_identifiers.append(f'["{name}"]')
 
     def __getitem__(self, item):
         try:

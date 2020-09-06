@@ -211,8 +211,11 @@ class DataContainer(DCBase):
         for axis in self._labels:
             unique = names.count(axis.name) == 1
             valid = re.match(VALIDIDENTIFIER, axis.name) is not None
-            if unique and valid:
-                self._valid_identifiers.append(axis.name)
+            if unique:
+                if valid:
+                    self._valid_identifiers.append(axis.name)
+                else:
+                    self._valid_identifiers.append(f'["{axis.name}"]')
             self.legends.append(axis.legend)
 
     def __getitem__(self, item):

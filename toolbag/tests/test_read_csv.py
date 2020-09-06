@@ -142,3 +142,9 @@ def test_extraspaceinname():
 def test_unequal_lengths():
     data = read_csv("./toolbag/tests/unequal lengths.csv")
     assert np.isnan(data[2, 2])
+
+
+def test_dir_invalid_name():
+    file = StringIO("500_MHz,1_GHz\n1.0,2.0")
+    data = read_csv(file)
+    assert '["500_MHz"]' in dir(data)
