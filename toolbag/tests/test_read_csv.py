@@ -148,3 +148,12 @@ def test_dir_invalid_name():
     file = StringIO("500_MHz,1_GHz\n1.0,2.0")
     data = read_csv(file)
     assert '["500_MHz"]' in dir(data)
+
+
+def test_headerwithoutquantity():
+    file = StringIO(
+        "Coarse Amplitude DAC code - Plot 0,Attenuation (dB) - Plot 0\n1.0,2.0"
+    )
+    data = read_csv(file)
+    assert np.all(data["Coarse Amplitude DAC code - Plot 0"] == np.asarray([1.0]))
+    assert np.all(data.Attenuation == unyt_array([2.0], "dB"))

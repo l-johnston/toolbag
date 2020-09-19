@@ -140,7 +140,7 @@ class ReadCSV:
                     values.append(value)
                 self.labels.append(DataLabel(label, *values))
             else:
-                self.labels.append(DataLabel(label, *[None] * 3))
+                self.labels.append(DataLabel(label, "", None, None))
 
     def _parseheader(self):
         """Parse header"""
