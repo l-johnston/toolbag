@@ -1,5 +1,5 @@
 """`toolbag` is a collection of micellaneous functions used in processing data."""
-from unyt import matplotlib_support, define_unit
+from unyt import matplotlib_support, define_unit, Unit
 from toolbag.labview_utilities import ReadCSV, convert_timestamp, write_csv
 from toolbag.ltspice_utilities import ReadLTxt, ReadLTraw
 from toolbag.mentor_utilities import ReadPAF
@@ -13,6 +13,7 @@ __all__ = [
     "read_paf",
     "reset_plot",
     "write_csv",
+    "dBm",
 ]
 
 
@@ -31,3 +32,4 @@ try:
     define_unit("dBm", (1, "dB"))
 except RuntimeError:
     pass
+dBm = Unit("dBm")
