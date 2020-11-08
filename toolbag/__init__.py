@@ -4,8 +4,11 @@ from toolbag.labview_utilities import ReadCSV, convert_timestamp, write_csv
 from toolbag.ltspice_utilities import ReadLTxt, ReadLTraw
 from toolbag.mentor_utilities import ReadPAF
 from toolbag.mpl_utilities import reset_plot
+from toolbag.common import format_as_si
+from toolbag.version import __version__
 
 __all__ = [
+    "__version__",
     "read_csv",
     "convert_timestamp",
     "read_ltxt",
@@ -14,6 +17,7 @@ __all__ = [
     "reset_plot",
     "write_csv",
     "dBm",
+    "format_as_si",
 ]
 
 

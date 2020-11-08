@@ -4,6 +4,7 @@ from unyt import unyt_array
 from unyt.testing import allclose_units
 from toolbag import read_ltxt
 
+
 # pylint: disable=missing-function-docstring
 # pylint: disable=invalid-name
 def test_time():

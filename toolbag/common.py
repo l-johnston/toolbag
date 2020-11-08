@@ -2,6 +2,7 @@
 import functools
 from collections import namedtuple
 from enum import Enum
+import numpy as np
 
 
 class Error(Exception):
@@ -96,3 +97,58 @@ class DCBase:
 
     def __repr__(self):
         return repr(self._data)
+
+
+SIPREFIXES = {
+    -24: "y",
+    -21: "z",
+    -18: "a",
+    -15: "f",
+    -12: "p",
+    -9: "n",
+    -6: "µ",
+    -3: "m",
+    0: "",
+    3: "k",
+    6: "M",
+    9: "G",
+    12: "T",
+    15: "P",
+    18: "E",
+    21: "Z",
+    24: "Y",
+}
+
+
+def format_as_si(value, unit=None, precision=3):
+    """Format value using SI prefixes to improve readability
+
+    Parameters
+    ----------
+    value : numeric
+        value to be scaled to be between (-1000, 1000)
+    unit : str
+        SI unit symbol such as "m"
+    precision : int
+        number of decimal places for scaled value
+
+    Returns
+    -------
+    scaled_value : str
+    """
+    si_pwr = 0
+    sign = np.sign(value)
+    value = np.abs(value)
+    if value != 0:
+        log_value = np.log10(value)
+        si_pwr = 3 * np.floor(log_value / 3)
+        value = 10 ** (log_value - si_pwr)
+    value *= sign
+    fractional, _ = np.modf(value)
+    if np.isclose(0, fractional, atol=10 ** (-1 * (precision + 1))):
+        precision = 0
+    if unit is None:
+        result = f"{value:.{precision}f}{SIPREFIXES[int(si_pwr)]}"
+    else:
+        result = f"{value:.{precision}f} {SIPREFIXES[int(si_pwr)]}{unit}"
+    return result

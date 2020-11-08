@@ -1,11 +1,14 @@
 """Test read_ltraw"""
+import pathlib
 from unyt import unyt_array
 from unyt.testing import allclose_units
 from toolbag import read_ltraw
 
+data_dir = pathlib.Path("tests/data files")
+
 # pylint: disable=missing-function-docstring
 def test_vsource():
-    sim = read_ltraw("./toolbag/tests/vsource.raw")
+    sim = read_ltraw(data_dir.joinpath("vsource.raw"))
     assert sim.variables == [
         "time",
         "V(v1)",
@@ -23,7 +26,7 @@ def test_vsource():
 
 
 def test_vsourceac():
-    sim = read_ltraw("./toolbag/tests/vsource ac.raw")
+    sim = read_ltraw(data_dir.joinpath("vsource ac.raw"))
     assert sim.variables == ["frequency", "V(v1)", "I(C1)", "I(V1)"]
     assert allclose_units(sim.frequency, unyt_array([1, 2, 3], "Hz"))
     assert allclose_units(sim["V(v1)"], unyt_array(3 * [complex(1, 0)], "V"))
