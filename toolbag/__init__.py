@@ -6,6 +6,7 @@ from toolbag.mentor_utilities import ReadPAF
 from toolbag.mpl_utilities import reset_plot
 from toolbag.common import format_as_si
 from toolbag.version import __version__
+from toolbag.extract_singletone import extract_singletone
 
 __all__ = [
     "__version__",
@@ -18,6 +19,7 @@ __all__ = [
     "write_csv",
     "dBm",
     "format_as_si",
+    "extract_singletone",
 ]
 
 
