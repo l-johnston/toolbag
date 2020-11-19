@@ -7,6 +7,7 @@ from toolbag.mpl_utilities import reset_plot
 from toolbag.common import format_as_si
 from toolbag.version import __version__
 from toolbag.extract_singletone import extract_singletone
+from toolbag.awr_utilities import ReadTraceData
 
 __all__ = [
     "__version__",
@@ -20,6 +21,7 @@ __all__ = [
     "dBm",
     "format_as_si",
     "extract_singletone",
+    "read_awr_tracedata",
 ]
 
 
@@ -31,6 +33,7 @@ read_csv = ReadCSV()
 read_ltxt = ReadLTxt()
 read_ltraw = ReadLTraw()
 read_paf = ReadPAF()
+read_awr_tracedata = ReadTraceData()
 
 matplotlib_support()
 matplotlib_support.label_style = "/"

@@ -4,7 +4,7 @@ Various Python tools for use here at NI
 ## Installation
 
     $ git clone git@github.com:l-johnston/toolbag.git
-    $ python setup.py
+    $ pip install .
 
 ## Documentation
 ### Reading from LabVIEW generated CSV files
