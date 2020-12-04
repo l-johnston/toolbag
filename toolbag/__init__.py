@@ -1,6 +1,11 @@
 """`toolbag` is a collection of micellaneous functions used in processing data."""
 from unyt import matplotlib_support, define_unit, Unit
-from toolbag.labview_utilities import ReadCSV, convert_timestamp, write_csv
+from toolbag.labview_utilities import (
+    ReadCSV,
+    convert_timestamp,
+    write_csv,
+    threshold_1d,
+)
 from toolbag.ltspice_utilities import ReadLTxt, ReadLTraw
 from toolbag.mentor_utilities import ReadPAF
 from toolbag.mpl_utilities import reset_plot
@@ -22,6 +27,7 @@ __all__ = [
     "format_as_si",
     "extract_singletone",
     "read_awr_tracedata",
+    "threshold_1d",
 ]
 
 

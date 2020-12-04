@@ -303,3 +303,35 @@ def write_csv(file, data, header=None):
             row = ",".join(row)
         file.write(row + "\n")
     file.close()
+
+
+def threshold_1d(array, threshold, start_index=0):
+    """Threshold 1D array
+
+    Interpolates points in a 1D array that represents a 2D non-descending graph.
+    This function compares threshold y to the values in array of numbers or points
+    starting at start index until it finds a pair of consecutive elements such that
+    threshold y is greater than or equal to the value of the first element and less
+    than or equal to the value of the second element.
+
+    Parameters
+    ----------
+    array : array-like
+    threshold : float
+
+    Returns
+    -------
+    x : float
+    """
+    array = np.asarray(array)
+    if threshold < array[start_index]:
+        x = start_index
+    elif threshold > array[-1]:
+        x = array.size - 1
+    elif threshold in array:
+        x = np.nonzero(threshold == array)[0][0]
+    else:
+        index = np.nonzero(threshold >= array)[0][-1]
+        lower_y, upper_y = array[index : index + 2]
+        x = index + (threshold - lower_y) / (upper_y - lower_y)
+    return x
