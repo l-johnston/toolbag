@@ -28,6 +28,7 @@ __all__ = [
     "extract_singletone",
     "read_awr_tracedata",
     "threshold_1d",
+    "dBc",
 ]
 
 
@@ -45,6 +46,8 @@ matplotlib_support()
 matplotlib_support.label_style = "/"
 try:
     define_unit("dBm", (1, "dB"))
+    define_unit("dBc", (1, "dB"))
 except RuntimeError:
     pass
 dBm = Unit("dBm")
+dBc = Unit("dBc")
