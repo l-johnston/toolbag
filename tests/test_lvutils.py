@@ -1,6 +1,6 @@
 """Test LabVIEW utilities"""
 import numpy as np
-from toolbag.labview_utilities import threshold_1d
+from toolbag.labview_utilities import threshold_1d, interpolate_1d
 
 # pylint: disable=missing-function-docstring
 def test_threshold1d():
@@ -38,3 +38,22 @@ def test_threshold1d():
     threshold = 0
     expected_x = 5
     assert np.allclose(threshold_1d(array, threshold, start_index=5), expected_x)
+
+
+def test_interpolate1d():
+    array = [5, 7]
+    x = 0.5
+    expected_y = 6
+    assert interpolate_1d(array, x) == expected_y
+    x = 0
+    expected_y = 5
+    assert interpolate_1d(array, x) == expected_y
+    x = -1
+    expected_y = 5
+    assert interpolate_1d(array, x) == expected_y
+    x = 1
+    expected_y = 7
+    assert interpolate_1d(array, x) == expected_y
+    x = 2
+    expected_y = 7
+    assert interpolate_1d(array, x) == expected_y

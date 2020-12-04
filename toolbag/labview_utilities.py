@@ -335,3 +335,31 @@ def threshold_1d(array, threshold, start_index=0):
         lower_y, upper_y = array[index : index + 2]
         x = index + (threshold - lower_y) / (upper_y - lower_y)
     return x
+
+
+def interpolate_1d(array, x):
+    """Interpolate 1D array
+
+    Linearly interpolates a decimal y value from an array of numbers or points using
+    a fractional index or x value.
+
+    Parameters
+    ----------
+    array : array-like
+    x : float
+
+    Returns
+    -------
+    y : float
+    """
+    array = np.asarray(array)
+    if x <= 0:
+        y = array[0]
+    elif x >= array.size - 1:
+        y = array[-1]
+    else:
+        x_fractional, x_lower = np.modf(x)
+        x_lower = int(x_lower)
+        y_lower, y_upper = array[x_lower : x_lower + 2]
+        y = y_lower + x_fractional * (y_upper - y_lower)
+    return y

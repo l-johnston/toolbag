@@ -5,6 +5,7 @@ from toolbag.labview_utilities import (
     convert_timestamp,
     write_csv,
     threshold_1d,
+    interpolate_1d,
 )
 from toolbag.ltspice_utilities import ReadLTxt, ReadLTraw
 from toolbag.mentor_utilities import ReadPAF
@@ -29,6 +30,7 @@ __all__ = [
     "read_awr_tracedata",
     "threshold_1d",
     "dBc",
+    "interpolate_1d",
 ]
 
 
