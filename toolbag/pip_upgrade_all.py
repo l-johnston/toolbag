@@ -46,7 +46,7 @@ async def show_spinner(state):
 async def upgrade(pkg, state):
     """Upgrade package pkg"""
     proc = subprocess.Popen(
-        ["pip", "install", "-U", "--use-feature=2020-resolver"] + pkg,
+        ["pip", "install", "-U"] + pkg,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,
         text=True,
