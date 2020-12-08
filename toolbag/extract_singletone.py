@@ -18,7 +18,7 @@ def gaussianwindow(x, sigma=0.2):
     return x * np.exp(-((i - m) ** 2) / (2 * (sigma * len(x)) ** 2))
 
 
-def extract_singletone(x, fs):
+def extract_singletone(x, fs, approx_freq=None, search=0.05):
     """Extract single tone from a time domain signal
 
     Finds the frequency and amplitude of the largest amplitude tone in the
@@ -30,6 +30,11 @@ def extract_singletone(x, fs):
         time domain signal
     fs : float
         sample frequency
+    approx_freq : float
+        approximate frequency to search for
+        if None, find the maximum amplitude
+    search : float
+        search ± percentage around approx_freq if given
 
     Returns
     -------
@@ -41,7 +46,17 @@ def extract_singletone(x, fs):
     xw = gaussianwindow(x)
     coherent_gain = gaussianwindow(np.ones(n_samples)).sum() / n_samples
     spectrum = np.abs(np.fft.fft(xw)[:mid])
-    tone_bin = spectrum.argmax()
+    fmin_bin = 0
+    fmax_bin = mid
+    if approx_freq is not None:
+        fmin = approx_freq * (1 - search)
+        fmax = approx_freq * (1 + search)
+        df = fs / n_samples
+        fmin_bin = np.floor(fmin / df).astype(int)
+        fmin_bin = 0 if fmin_bin < 0 else fmin_bin
+        fmax_bin = np.ceil(fmax / df).astype(int) + 1
+        fmax_bin = n_samples if fmax_bin > mid else fmax_bin
+    tone_bin = fmin_bin + spectrum[fmin_bin:fmax_bin].argmax()
     a = np.log10(spectrum[tone_bin - 1])
     b = np.log10(spectrum[tone_bin])
     g = np.log10(spectrum[tone_bin + 1])
