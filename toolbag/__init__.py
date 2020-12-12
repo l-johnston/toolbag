@@ -1,5 +1,6 @@
 """`toolbag` is a collection of micellaneous functions used in processing data."""
-from unyt import matplotlib_support, define_unit, Unit
+import numpy as np
+from unyt import matplotlib_support, define_unit, Unit, unyt_array
 from toolbag.labview_utilities import (
     ReadCSV,
     convert_timestamp,
@@ -31,6 +32,7 @@ __all__ = [
     "threshold_1d",
     "dBc",
     "interpolate_1d",
+    "rf_power",
 ]
 
 
@@ -53,3 +55,32 @@ except RuntimeError:
     pass
 dBm = Unit("dBm")
 dBc = Unit("dBc")
+
+
+def rf_power(amplitude, condition="RMS", ref=50):
+    """Compute RF power given amplitude
+
+    Parameters
+    ----------
+    amplitude : float in volt
+    condition : str
+        condition of measurement {'peak', 'pk-pk', 'RMS'}
+    ref : float in ohm
+        refernce impedance
+
+    Returns
+    -------
+    power : float in dBm
+    """
+    condition = condition.lower()
+    if condition in ["pk", "peak"]:
+        amplitude /= np.sqrt(2)
+    elif condition in ["pk-pk", "peak-to-peak"]:
+        amplitude /= 2 * np.sqrt(2)
+    elif condition != "rms":
+        raise ValueError(f"invalid '{condition}'")
+    if isinstance(amplitude, unyt_array):
+        amplitude.convert_to_base()
+    if isinstance(ref, unyt_array):
+        ref.convert_to_base()
+    return 10 * np.log10(amplitude ** 2 / ref * 1000) * dBm
