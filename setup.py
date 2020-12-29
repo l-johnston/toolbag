@@ -36,6 +36,6 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Intended Audience :: Science/Research",
     ],
-    install_requires=["numpy", "matplotlib", "unyt"],
+    install_requires=["numpy!=1.19.4", "matplotlib", "unyt"],
     entry_points={"console_scripts": ["pip_upgrade_all=toolbag.pip_upgrade_all:main"]},
 )
