@@ -124,7 +124,11 @@ class ReadCSV:
                     raise Error(f"Non numeric value '{column}' found in data array")
                 row.append(self._parsenumber(*match.groups()))
             self.data.append(row)
-        self.data = np.asarray(self.data)
+        # numpy deprecated ragged array creation for dtype other than 'object'
+        if all([len(self.data[0]) == len(row) for row in self.data]):
+            self.data = np.asarray(self.data)
+        else:
+            self.data = np.asarray(self.data, dtype=object)
 
     def _parselabels(self, labels):
         """Parse labels"""

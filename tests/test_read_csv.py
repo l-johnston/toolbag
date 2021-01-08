@@ -1,6 +1,7 @@
 """Test read_csv"""
 from io import StringIO
 import pathlib
+import pytest
 import numpy as np
 from unyt import unyt_array, unyt_quantity
 from unyt.testing import allclose_units
@@ -160,3 +161,9 @@ def test_headerwithoutquantity():
     data = read_csv(file)
     assert np.all(data["Coarse Amplitude DAC code - Plot 0"] == np.asarray([1.0]))
     assert np.all(data.Attenuation == unyt_array([2.0], "dB"))
+
+
+@pytest.mark.filterwarnings("error:Creating an ndarray from ragged")
+def test_rowheaderragged():
+    data = read_csv(data_dir.joinpath("row header ragged array.csv"))
+    assert data.frequency == unyt_quantity(20e9, "Hz")
