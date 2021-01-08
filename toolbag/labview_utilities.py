@@ -285,7 +285,7 @@ def convert_timestamp(timestamp):
     return _convert(timestamp)
 
 
-def write_csv(file, data, header=None):
+def write_csv(file, data, header=None, mode="w"):
     """Write data to text file in CSV format
 
     Parameters
@@ -293,9 +293,13 @@ def write_csv(file, data, header=None):
     file : str or Path-like
     data : array-like
     header : str
+    mode : str
+        applicable when 'file' is a str
+        'w' overwrite existing
+        'a' append
     """
     try:
-        file = open(file, "wt")
+        file = open(file, mode + "t")
     except TypeError:
         pass
     if header is not None:
