@@ -38,6 +38,10 @@ def test_threshold1d():
     threshold = 0
     expected_x = 5
     assert np.allclose(threshold_1d(array, threshold, start_index=5), expected_x)
+    array = [0, 1, 2, 3, 2, 1, 0]
+    threshold = 1.5
+    expected_x = 1.5
+    assert np.allclose(threshold_1d(array, threshold), expected_x)
 
 
 def test_interpolate1d():

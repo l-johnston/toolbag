@@ -334,14 +334,15 @@ def threshold_1d(array, threshold, start_index=0):
     array = np.asarray(array)
     if threshold < array[start_index]:
         x = start_index
-    elif threshold > array[-1]:
+    elif threshold > array.max():
         x = array.size - 1
     elif threshold in array:
         x = np.nonzero(threshold == array)[0][0]
     else:
-        index = np.nonzero(threshold >= array)[0][-1]
-        lower_y, upper_y = array[index : index + 2]
-        x = index + (threshold - lower_y) / (upper_y - lower_y)
+        upper_index = np.nonzero(threshold < array)[0][0]
+        lower_index = upper_index - 1
+        lower_y, upper_y = array[lower_index : upper_index + 1]
+        x = lower_index + (threshold - lower_y) / (upper_y - lower_y)
     return x
 
 
