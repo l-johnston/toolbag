@@ -167,3 +167,8 @@ def test_headerwithoutquantity():
 def test_rowheaderragged():
     data = read_csv(data_dir.joinpath("row header ragged array.csv"))
     assert data.frequency == unyt_quantity(20e9, "Hz")
+
+
+def test_singlerowdatalabel():
+    data = read_csv(data_dir.joinpath("single row data label.csv"))
+    assert np.all(data.Time == unyt_array(list(range(10)), "s"))
